@@ -2,7 +2,7 @@
 import { t } from '@lang';
 import { useRouteQuery } from '@vueuse/router';
 import { capitalize } from 'vue';
-import { runtimes } from '@/schema/benchmarks/results';
+import { runtimes } from '@/schema/results';
 
 const selected = useRouteQuery('runtime', runtimes[0] ? `${runtimes[0].name}_${runtimes[0].version}` : '');
 </script>

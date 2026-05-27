@@ -1,4 +1,4 @@
-import type { PlatformResult } from './data';
+import type { PlatformResult } from './benchmarks/data';
 
 const entries = Object.entries(
   import.meta.glob<string>('../results/**/*.json.gz', { query: '?url', eager: true, import: 'default' }),
@@ -38,7 +38,12 @@ export async function loadAllByRuntime(runtime?: string): Promise<PlatformResult
   const parsed = await Promise.allSettled(
     responses
       .filter(r => r.status === 'fulfilled')
-      .map(r => r.value.json() as Promise<PlatformResult>),
+      .map(async (response) => {
+        const blob = await response.value.blob();
+        const ds = new DecompressionStream('gzip');
+        const decompressed = await new Response(blob.stream().pipeThrough(ds)).text();
+        return JSON.parse(decompressed) as PlatformResult;
+      }),
   );
   return parsed
     .filter((r): r is PromiseFulfilledResult<PlatformResult> => r.status === 'fulfilled')

@@ -3,10 +3,10 @@ import { currentLocale, localeNames, t } from '@lang';
 import { computedAsync } from '@vueuse/core';
 import { useRouteQuery } from '@vueuse/router';
 import { computed, ref, shallowRef } from 'vue';
-import { loadAllByRuntime } from '@/schema/benchmarks/results';
 import LibraryResult from '@/schema/components/LibraryResult.vue';
 import RuntimeRadio from '@/schema/components/RuntimeRadio.vue';
 import TestFilters from '@/schema/components/TestFilters.vue';
+import { loadAllByRuntime } from '@/schema/results';
 
 type Mode = 'all' | 'valid' | 'invalid';
 type SortBy = 'fastest' | 'popularity';
