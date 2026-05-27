@@ -1,0 +1,108 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/benchmark.yml
+      - src/modules/schema/cases/**
+      - src/modules/schema/scripts/**
+      - src/modules/schema/benchmarks/**
+      - package.json
+      - bun.lockb
+  schedule:
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    name: ${{ matrix.runtime }} ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - runtime: node
+            version: '20'
+          - runtime: node
+            version: '22'
+          - runtime: node
+            version: '24'
+          - runtime: bun
+            version: '1.1'
+          - runtime: bun
+            version: '1.2'
+          - runtime: bun
+            version: latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: matrix.runtime == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.version }}
+
+      - name: Setup Bun
+        if: matrix.runtime == 'bun'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ matrix.version }}
+
+      - name: Cache npm
+        if: matrix.runtime == 'node'
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: ${{ runner.os }}-npm-
+
+      - name: Cache bun
+        if: matrix.runtime == 'bun'
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lockb') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install
+        run: |
+          if [ "${{ matrix.runtime }}" = "bun" ]; then
+            bun install --frozen-lockfile
+          else
+            npm ci
+          fi
+
+      - name: Build libraries
+        run: ${{ matrix.runtime == 'bun' && 'bun' || 'npx tsx' }} src/modules/schema/scripts/build.ts
+
+      - name: Run benchmarks
+        run: ${{ matrix.runtime == 'bun' && 'bun' || 'npx tsx' }} src/modules/schema/scripts/run.ts
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ matrix.runtime }}-${{ matrix.version }}
+          path: src/modules/schema/results/*.json.gz
+
+  commit:
+    name: Commit results
+    runs-on: ubuntu-latest
+    needs: benchmark
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
+          path: src/modules/schema/results
+          merge-multiple: true
+
+      - name: Commit results
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: 'bench: update results'
+          add: src/modules/schema/results/*.json.gz

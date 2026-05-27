@@ -1,0 +1,7 @@
+html {
+  interpolate-size: allow-keywords;
+}
+
+* {
+  scrollbar-gutter: stable;
+}
