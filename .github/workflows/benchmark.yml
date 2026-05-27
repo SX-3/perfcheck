@@ -41,23 +41,16 @@ jobs:
 
       - name: Setup Node
         if: matrix.runtime == 'node'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.version }}
+          cache: npm
 
       - name: Setup Bun
         if: matrix.runtime == 'bun'
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ matrix.version }}
-
-      - name: Cache npm
-        if: matrix.runtime == 'node'
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: ${{ runner.os }}-npm-
 
       - name: Cache bun
         if: matrix.runtime == 'bun'
@@ -82,27 +75,7 @@ jobs:
         run: ${{ matrix.runtime == 'bun' && 'bun' || 'npx tsx' }} src/modules/schema/scripts/run.ts
 
       - name: Upload results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: results-${{ matrix.runtime }}-${{ matrix.version }}
           path: src/modules/schema/results/*.json.gz
-
-  commit:
-    name: Commit results
-    runs-on: ubuntu-latest
-    needs: benchmark
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all results
-        uses: actions/download-artifact@v4
-        with:
-          pattern: results-*
-          path: src/modules/schema/results
-          merge-multiple: true
-
-      - name: Commit results
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: 'bench: update results'
-          add: src/modules/schema/results/*.json.gz

@@ -3,31 +3,67 @@ name: Deploy Pages
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - .github/workflows/benchmark.yml
+      - src/modules/schema/cases/**
+      - src/modules/schema/scripts/**
+      - src/modules/schema/benchmarks/**
+      - package.json
+      - bun.lockb
+  workflow_run:
+    workflows: [Benchmark]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  actions: read
+  pages: write
+  id-token: write
+
 jobs:
   deploy:
     name: Deploy
+    if: |
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
-
-      - uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: ${{ runner.os }}-npm-
+          cache: npm
 
       - run: npm ci
+
+      # Download benchmark results from the triggering run (workflow_run event)
+      - name: Download benchmark results (triggering run)
+        if: github.event_name == 'workflow_run'
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@v21
+        with:
+          github_token: ${{ github.token }}
+          workflow: benchmark.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          path: src/modules/schema/results
+
+      # Download latest benchmark results from main (push / workflow_dispatch)
+      - name: Download benchmark results (latest on main)
+        if: github.event_name != 'workflow_run'
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@v21
+        with:
+          github_token: ${{ github.token }}
+          workflow: benchmark.yml
+          workflow_conclusion: success
+          branch: main
+          path: src/modules/schema/results
+
       - run: npm run build
 
       - uses: actions/configure-pages@v4
