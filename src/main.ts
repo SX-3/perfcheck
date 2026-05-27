@@ -1,16 +1,16 @@
-import { createApp } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
-import { handleHotUpdate, routes } from 'vue-router/auto-routes'
-import App from './App.vue'
-import '@unocss/reset/tailwind-v4.css'
-import 'virtual:uno.css'
+import { createApp } from 'vue';
+import { createRouter, createWebHistory } from 'vue-router';
+import { handleHotUpdate, routes } from 'vue-router/auto-routes';
+import App from './App.vue';
+import '@unocss/reset/tailwind-v4.css';
+import 'virtual:uno.css';
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-})
+});
 
 if (import.meta.hot)
-  handleHotUpdate(router)
+  handleHotUpdate(router);
 
-createApp(App).use(router).mount('#app')
+createApp(App).use(router).mount('#app');
