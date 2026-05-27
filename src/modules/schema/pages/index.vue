@@ -161,7 +161,6 @@ const sorted = computed(() => {
           :mode="mode"
           :score="scores.get(lib.name)"
           :downloads="lib.downloads"
-          :sort-by="sortBy"
           :enabled="enabled"
         />
       </main>

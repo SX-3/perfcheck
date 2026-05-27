@@ -1,12 +1,11 @@
 import type { PlatformResult } from './benchmarks/data';
 
-const entries = Object.entries(
-  import.meta.glob<string>('./results/**/*.json.gz', { query: '?url', eager: true, import: 'default' }),
-).map(([path, url]) => {
-  const file = path.split('/').at(-1)!;
-  const [runtime, runtimeVersion] = file.replace('.json.gz', '').split('_');
-  return { runtime, runtimeVersion, url };
-});
+const entries = Object.entries(import.meta.glob<string>('./results/**/*.json.gz', { query: '?url', eager: true, import: 'default' }))
+  .map(([path, url]) => {
+    const file = path.split('/').at(-1)!;
+    const [runtime, runtimeVersion] = file.replace('.json.gz', '').split('_');
+    return { runtime, runtimeVersion, url };
+  });
 
 interface Runtime {
   name: string;
@@ -34,18 +33,9 @@ export async function loadAllByRuntime(runtime?: string): Promise<PlatformResult
   if (!name || !version) return [];
 
   const match = entries.filter(e => e.runtime === name && e.runtimeVersion === version);
-  const responses = await Promise.allSettled(match.map(e => fetch(e.url)));
-  const parsed = await Promise.allSettled(
-    responses
-      .filter(r => r.status === 'fulfilled')
-      .map(async (response) => {
-        const blob = await response.value.blob();
-        const ds = new DecompressionStream('gzip');
-        const decompressed = await new Response(blob.stream().pipeThrough(ds)).text();
-        return JSON.parse(decompressed) as PlatformResult;
-      }),
-  );
-  return parsed
-    .filter((r): r is PromiseFulfilledResult<PlatformResult> => r.status === 'fulfilled')
+  const responses = await Promise.allSettled(match.map(e => fetch(e.url).then(r => r.json())));
+
+  return responses
+    .filter(r => r.status === 'fulfilled')
     .map(r => r.value);
 }

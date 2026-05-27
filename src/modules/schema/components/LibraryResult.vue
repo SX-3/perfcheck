@@ -10,7 +10,6 @@ const props = defineProps<{
   mode: 'all' | 'valid' | 'invalid';
   score?: number;
   downloads?: number;
-  sortBy?: 'fastest' | 'popularity';
   enabled?: Set<string>;
 }>();
 

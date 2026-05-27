@@ -1,3 +1,5 @@
+/* eslint-disable antfu/no-top-level-await  */
+import { i18n } from '@lang';
 import { createApp } from 'vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { handleHotUpdate, routes } from 'vue-router/auto-routes';
@@ -10,7 +12,8 @@ export const router = createRouter({
   routes,
 });
 
-if (import.meta.hot)
-  handleHotUpdate(router);
+if (import.meta.hot) handleHotUpdate(router);
+
+await i18n.isReady();
 
 createApp(App).use(router).mount('#app');
