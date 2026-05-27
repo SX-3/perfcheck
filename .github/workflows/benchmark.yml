@@ -14,6 +14,10 @@ on:
     - cron: '0 0 * * 1'
   workflow_dispatch:
 
+concurrency:
+  group: benchmarks
+  cancel-in-progress: true
+
 jobs:
   benchmark:
     name: ${{ matrix.runtime }} ${{ matrix.version }}
@@ -33,7 +37,7 @@ jobs:
             version: latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node
         if: matrix.runtime == 'node'

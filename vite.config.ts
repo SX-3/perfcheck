@@ -1,4 +1,5 @@
 import { globSync } from 'node:fs';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import vue from '@vitejs/plugin-vue';
 import uno from 'unocss/vite';
