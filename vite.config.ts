@@ -30,6 +30,7 @@ function pages() {
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/perfcheck/',
   plugins: [uno(), router({ routesFolder: pages() }), vue()],
   resolve: {
     alias: {
