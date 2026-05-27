@@ -24,13 +24,9 @@ jobs:
       matrix:
         include:
           - runtime: node
-            version: '20'
-          - runtime: node
             version: '22'
           - runtime: node
             version: '24'
-          - runtime: bun
-            version: '1.1'
           - runtime: bun
             version: '1.2'
           - runtime: bun
