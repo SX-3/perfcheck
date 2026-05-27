@@ -1,28 +1,14 @@
 <script lang="ts" setup>
 import { t } from '@lang';
-import { useRouteQuery } from '@vueuse/router';
-import { computed } from 'vue';
+import { useFilters } from '@/schema/composables/useFilters';
+import { BENCHMARK_COLORS as COLORS, BENCHMARK_TYPES as TYPES } from '../const';
 
-const TYPES = ['parseSafe', 'parseStrict', 'assertLoose', 'assertStrict'] as const;
-
-const COLORS: Record<string, string> = {
-  parseSafe: '#60a5fa',
-  parseStrict: '#f59e0b',
-  assertLoose: '#34d399',
-  assertStrict: '#f87171',
-};
-
-const testsRaw = useRouteQuery<string>('tests', '');
-
-const enabled = computed({
-  get: () => new Set(testsRaw.value ? testsRaw.value.split(',') : TYPES),
-  set: (s) => { testsRaw.value = s.size === TYPES.length ? '' : [...s].join(','); },
-});
+const filters = useFilters();
 
 function toggle(type: string) {
-  const next = new Set(enabled.value);
-  next.has(type) ? next.delete(type) : next.add(type);
-  enabled.value = next;
+  const enabled = filters.value.indexOf(type);
+  if (enabled === -1) filters.value = [...filters.value, type];
+  else filters.value = filters.value.filter(t => t !== type);
 }
 </script>
 
@@ -34,14 +20,15 @@ function toggle(type: string) {
       :key="type"
       class="text-xs flex gap-2 cursor-pointer items-center"
     >
-      <input
-        type="checkbox"
-        :checked="enabled.has(type)"
-        class="accent-neutral-500"
-        @change="toggle(type)"
+      <button
+        type="button"
+        :class="{ 'opacity-50': !filters.includes(type) }"
+        class="flex gap-2 cursor-pointer items-center"
+        @click="toggle(type)"
       >
-      <span class="rounded-sm h-2.5 w-2.5 inline-block" :style="{ backgroundColor: COLORS[type] }" />
-      <span class="text-neutral-300">{{ t(type) }}</span>
+        <span class="rounded-sm h-2.5 w-2.5 inline-block" :style="{ backgroundColor: COLORS[type] }" />
+        <span class="text-neutral-300">{{ t(type) }}</span>
+      </button>
     </label>
   </section>
 </template>

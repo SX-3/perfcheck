@@ -2,6 +2,8 @@
 import type { LibraryEntry } from '../benchmarks/data';
 import { t } from '@lang';
 import { computed } from 'vue';
+import { useFilters } from '../composables/useFilters';
+import { BENCHMARK_COLORS as COLORS, BENCHMARK_TYPES as TYPES } from '../const';
 import BenchmarkBar from './BenchmarkBar.vue';
 import TransitionList from './TransitionList.vue';
 
@@ -10,77 +12,39 @@ const props = defineProps<{
   mode: 'all' | 'valid' | 'invalid';
   score?: number;
   downloads?: number;
-  enabled?: Set<string>;
+  globalMaxOps: Record<string, number>;
 }>();
 
+const filters = useFilters();
+
 const sorted = computed(() => {
-  const order = TYPES as readonly string[];
-  return [...props.library.summary.results].sort((a, b) => {
-    const ai = order.findIndex(o => a.name.startsWith(o));
-    const bi = order.findIndex(o => b.name.startsWith(o));
-    if (ai !== bi) return ai - bi;
-    return a.name.includes('invalid') ? 1 : -1;
+  const results = props.library.summary.results;
+  if (!filters.value) return results;
+  return results.filter((result) => {
+    const [prefix, mode] = result.name.split(' - ');
+    return filters.value.includes(prefix) && (props.mode === 'all' || mode === props.mode);
   });
 });
 
-const filtered = computed(() => {
-  let list = sorted.value;
-  if (props.mode !== 'all') {
-    list = list.filter(r => props.mode === 'valid' ? !r.name.includes('invalid') : r.name.includes('invalid'));
-  }
-  if (props.enabled) {
-    list = list.filter(r => (TYPES as readonly string[]).some(t => r.name.startsWith(t) && props.enabled!.has(t)));
-  }
-  return list;
-});
-
-const maxOps = computed(() => Math.max(...sorted.value.map(r => r.ops), 1));
-
-/** Per-type slowdown: how much slower is the invalid path vs the valid one (%). */
-const slowdown = computed(() => {
-  const map = new Map<string, number>();
-  for (const type of TYPES) {
-    const valid = sorted.value.find(r => r.name.startsWith(type) && !r.name.includes('invalid'));
-    const invalid = sorted.value.find(r => r.name.startsWith(type) && r.name.includes('invalid'));
-    if (valid && invalid) {
-      map.set(type, (1 - invalid.ops / valid.ops) * 100);
-    }
-  }
-  return map;
-});
-
-/** Arithmetic mean of slowdowns across all test types. */
-const avgSlowdown = computed(() => {
-  const values = [...slowdown.value.values()];
-  if (values.length === 0) return 0;
-  return values.reduce((a, b) => a + b, 0) / values.length;
-});
+/** Per-benchmark max across all libraries, falling back to 1. */
+function maxOpsFor(name: string): number {
+  return props.globalMaxOps[name] ?? 1;
+}
 
 /** Geometric mean of *filtered* results — depends on mode. */
 const geomean = computed(() => {
-  if (filtered.value.length === 0) return 0;
-  const product = filtered.value.reduce((p, r) => p * r.ops, 1);
-  return product ** (1 / filtered.value.length);
+  if (sorted.value.length === 0) return 0;
+  const product = sorted.value.reduce((p, r) => p * r.ops, 1);
+  return product ** (1 / sorted.value.length);
 });
 
-function getType(name: string): string {
-  return (TYPES as readonly string[]).find(t => name.startsWith(t)) ?? 'parseSafe';
+function getType(name: string): any {
+  return (TYPES as readonly string[]).find(t => name.startsWith(t)) ?? TYPES[0];
 }
 </script>
 
-<script lang="ts">
-const COLORS: Record<string, string> = {
-  parseSafe: '#60a5fa',
-  parseStrict: '#f59e0b',
-  assertLoose: '#34d399',
-  assertStrict: '#f87171',
-};
-
-const TYPES = ['parseSafe', 'parseStrict', 'assertLoose', 'assertStrict'] as const;
-</script>
-
 <template>
-  <section class="border border-neutral-800 rounded-lg overflow-hidden">
+  <section class="border border-neutral-800 rounded-lg shadow-lg overflow-hidden">
     <!-- Header -->
     <header class="px-4 py-3 border-b border-neutral-800 flex flex-wrap gap-x-3 gap-y-1 items-center">
       <h2 class="text-xl font-600">
@@ -113,22 +77,13 @@ const TYPES = ['parseSafe', 'parseStrict', 'assertLoose', 'assertStrict'] as con
       </span>
     </header>
 
-    <!-- Avg slowdown (invalid mode only) -->
-    <div
-      v-if="props.mode === 'invalid'"
-      class="text-xs text-amber-400 px-4 py-2 border-b border-neutral-800 flex gap-2 items-center"
-    >
-      <span>{{ t('avgSlowdown') }}</span>
-      <span class="font-600">{{ avgSlowdown.toFixed(1) }}%</span>
-    </div>
-
     <!-- Bars -->
     <TransitionList tag="div" class="px-4 py-3 gap-2 grid">
       <BenchmarkBar
-        v-for="result in filtered"
+        v-for="result in sorted"
         :key="result.name"
         :result="result"
-        :max-ops="maxOps"
+        :max-ops="maxOpsFor(result.name)"
         :mode="props.mode"
         :color="COLORS[getType(result.name)]"
       />

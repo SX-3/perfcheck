@@ -15,7 +15,7 @@ const props = defineProps<{
 // Distribution histogram
 // ---------------------------------------------------------------------------
 
-const BUCKETS = 22;
+const BUCKETS = 32;
 
 const hist = computed(() => {
   const samples = [...props.result.details.sampleResults].sort((a, b) => a - b);
@@ -40,17 +40,13 @@ const hist = computed(() => {
 // ---------------------------------------------------------------------------
 
 const expanded = ref(false);
-
-function toggle() {
-  expanded.value = !expanded.value;
-}
 </script>
 
 <template>
   <div class="grid">
-    <div class="text-sm py-0.5 flex gap-3 cursor-pointer items-center" @click="toggle">
+    <div class="text-sm py-0.5 flex gap-3 cursor-pointer items-center" @click="expanded = !expanded">
       <!-- Bar track -->
-      <div class="rounded-sm bg-neutral-800 flex-1 h-6 relative overflow-hidden">
+      <div class="rounded-sm bg-neutral-800 flex-1 h-6 relative">
         <div
           class="rounded-sm h-full transition-all duration-500 ease-out"
           :style="{

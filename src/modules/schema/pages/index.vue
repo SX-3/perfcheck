@@ -6,12 +6,11 @@ import { computed, ref, shallowRef } from 'vue';
 import LibraryResult from '@/schema/components/LibraryResult.vue';
 import RuntimeRadio from '@/schema/components/RuntimeRadio.vue';
 import TestFilters from '@/schema/components/TestFilters.vue';
+import { useFilters } from '@/schema/composables/useFilters';
 import { loadAllByRuntime } from '@/schema/results';
 
 type Mode = 'all' | 'valid' | 'invalid';
 type SortBy = 'fastest' | 'popularity';
-
-const TYPES = ['parseSafe', 'parseStrict', 'assertLoose', 'assertStrict'] as const;
 
 const loading = shallowRef(false);
 const runtime = useRouteQuery<string | undefined>('runtime', undefined);
@@ -24,15 +23,10 @@ const platforms = computedAsync(
 const mode = useRouteQuery<Mode>('mode', 'valid');
 const sortBy = ref<SortBy>('fastest');
 
-const testsRaw = useRouteQuery<string>('tests', '');
-
-const enabled = computed({
-  get: () => new Set(testsRaw.value ? testsRaw.value.split(',') : TYPES),
-  set: (s) => { testsRaw.value = s.size === TYPES.length ? '' : [...s].join(','); },
-});
+const filters = useFilters();
 
 function hasType(name: string): boolean {
-  return (TYPES as readonly string[]).some(t => name.startsWith(t) && enabled.value.has(t));
+  return filters.value.some(t => name.startsWith(t));
 }
 
 // ---------------------------------------------------------------------------
@@ -79,6 +73,7 @@ const scores = computed(() => {
 
 const sorted = computed(() => {
   const list = [...libraries.value];
+
   if (sortBy.value === 'fastest') {
     return list.sort((a, b) => {
       const sa = scores.value.get(a.name) ?? 0;
@@ -91,6 +86,17 @@ const sorted = computed(() => {
     const db = b.downloads ?? 0;
     return db - da || a.name.localeCompare(b.name);
   });
+});
+
+/** Max ops per benchmark name across ALL libraries — used for global bar scaling. */
+const globalMaxOps = computed(() => {
+  const map: Record<string, number> = {};
+  for (const lib of libraries.value) {
+    for (const r of lib.summary.results) {
+      map[r.name] = Math.max(map[r.name] ?? 0, r.ops);
+    }
+  }
+  return map;
 });
 </script>
 
@@ -161,7 +167,7 @@ const sorted = computed(() => {
           :mode="mode"
           :score="scores.get(lib.name)"
           :downloads="lib.downloads"
-          :enabled="enabled"
+          :global-max-ops="globalMaxOps"
         />
       </main>
     </div>
