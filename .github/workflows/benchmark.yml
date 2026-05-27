@@ -63,7 +63,7 @@ jobs:
       - name: Install
         run: |
           if [ "${{ matrix.runtime }}" = "bun" ]; then
-            bun install --frozen-lockfile
+            bun install
           else
             npm ci
           fi
