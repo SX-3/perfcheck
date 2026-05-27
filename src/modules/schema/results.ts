@@ -1,7 +1,7 @@
 import type { PlatformResult } from './benchmarks/data';
 
 const entries = Object.entries(
-  import.meta.glob<string>('../results/**/*.json.gz', { query: '?url', eager: true, import: 'default' }),
+  import.meta.glob<string>('./results/**/*.json.gz', { query: '?url', eager: true, import: 'default' }),
 ).map(([path, url]) => {
   const file = path.split('/').at(-1)!;
   const [runtime, runtimeVersion] = file.replace('.json.gz', '').split('_');
