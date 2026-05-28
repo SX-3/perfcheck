@@ -1,5 +1,6 @@
 {
   "name": "schema-benchmarks",
+  "type": "module",
   "private": true,
   "dependencies": {
     "@sx3/gate": "^1.0.4",

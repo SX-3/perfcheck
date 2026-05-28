@@ -8,6 +8,7 @@ on:
       - src/modules/schema/cases/**
       - src/modules/schema/scripts/**
       - src/modules/schema/benchmarks/**
+      - src/modules/schema/package.json
       - package.json
       - bun.lockb
   schedule:
