@@ -1,15 +1,13 @@
 /* eslint-disable no-console */
 import type { PlatformMeta } from './data.ts';
-import { writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { arch, cpus, version as osVersion, platform, totalmem } from 'node:os';
 import { resolve } from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { add, complete, cycle, suite } from 'benny';
 import { INVALID, VALID } from './data.ts';
-
-const require = createRequire(import.meta.url);
 
 export type CaseType = 'parseSafe' | 'parseStrict' | 'assertLoose' | 'assertStrict';
 
@@ -48,10 +46,12 @@ export function getCases(): readonly Case[] {
 export async function run(module: string, resultsDir: string, slug: string, caseMeta?: { npm?: string; github?: string }) {
   let version = '?';
   try {
-    version = require(`${module}/package.json`).version;
+    version = JSON.parse(
+      readFileSync(fileURLToPath(import.meta.resolve(`${module}/package.json`)), 'utf-8'),
+    ).version;
   }
   catch {
-    return console.error(`RUN: ⚠ ${module} not installed`);
+    console.error(`RUN: ⚠ ${module} not installed`);
   }
 
   const meta: PlatformMeta = {

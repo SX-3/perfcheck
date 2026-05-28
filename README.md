@@ -1,6 +1,8 @@
-# PrefCheck
+# [PrefCheck](https://sx-3.github.io/perfcheck/)
 
 > Benchmarks for runtime type validation libraries.
+
+[Website](https://sx-3.github.io/perfcheck/)
 
 ## Test cases
 
