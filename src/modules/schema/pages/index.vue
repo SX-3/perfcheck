@@ -122,6 +122,10 @@ const globalMaxOps = computed(() => {
       <!-- Test type filters -->
       <TestFilters />
 
+      <section class="p-2 card flex gap-3">
+        <a href="https://github.com/SX-3/perfcheck" target="_blank" class="i-bi-github" />
+      </section>
+
       <!-- How it works -->
       <section class="text-xs text-neutral-400 leading-relaxed p-4 card">
         <h3 class="text-neutral-200 font-600 mb-2" v-text="t('howItWorks')" />

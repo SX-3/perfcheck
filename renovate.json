@@ -5,6 +5,7 @@
     ":automergeMinor"
   ],
   "schedule": ["before 6am on Monday"],
+  "includePaths": ["src/modules/schema/package.json"],
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 6am on Monday"]

@@ -1,0 +1,12 @@
+{
+  "name": "schema-benchmarks",
+  "private": true,
+  "dependencies": {
+    "@sx3/gate": "^1.0.4",
+    "ajv": "^8.20.0",
+    "benny": "^3.7.1",
+    "sury": "^11.0.0-alpha.6",
+    "typebox": "^1.1.38",
+    "zod": "^4.4.3"
+  }
+}
