@@ -9,5 +9,25 @@
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 6am on Monday"]
-  }
+  },
+  "labels": [
+    "renovatebot"
+  ],
+  "packageRules": [
+    {
+      "updateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "automerge": true
+    },
+    {
+      "depTypeList": [
+        "devDependencies"
+      ],
+      "automerge": true
+    }
+  ]
 }

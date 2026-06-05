@@ -61,16 +61,24 @@ Open `http://localhost:5173` — select a runtime, toggle valid/invalid, filter 
 import { createCase } from '../../benchmarks/case.ts';
 import { parse, assert } from 'my-lib';
 
-createCase('parseSafe', () => (data) => parse(data));
-createCase('parseStrict', () => (data) => parse(data, { strict: true }));
-createCase('assertLoose', () => (data) => { assert(data); return true; });
-createCase('assertStrict', () => (data) => { assert(data, { strict: true }); return true; });
+createCase('parseSafe', () => {
+  return (data) => parse(data)
+});
+createCase('parseStrict', () => {
+  return (data) => parse(data, { strict: true })
+});
+createCase('assertLoose', () => {
+  return (data) => { 
+    assert(data);
+    return true;
+  }
+});
+createCase('assertStrict', () => {
+  return (data) => { 
+    assert(data, { strict: true });
+    return true;
+  }
+});
 ```
 
 5. Run test for check output is correct: `npm run test`
-
-## CI/CD
-
-- **Benchmark workflow** — runs on push to `main`, weekly schedule, and manual trigger. Tests Node 18/20/22/24 + Bun 1.1/1.2/latest. Results are committed back to the repo.
-- **Deploy workflow** — builds and deploys to GitHub Pages when results change.
-- **Renovate** — auto-updates dependencies every Monday.
