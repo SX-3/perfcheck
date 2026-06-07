@@ -3,11 +3,11 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "@sx3/gate": "^1.0.4",
+    "@sx3/gate": "^1.0.6",
     "ajv": "^8.20.0",
     "benny": "^3.7.1",
-    "sury": "^11.0.0-alpha.6",
-    "typebox": "^1.1.38",
+    "sury": "^11.0.0-alpha.7",
+    "typebox": "^1.2.2",
     "zod": "^4.4.3"
   }
 }
